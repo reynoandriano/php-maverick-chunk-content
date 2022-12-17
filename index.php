@@ -62,6 +62,12 @@ function describeParagraph($paragraph) {
 
     if($paragraph[0] == '!') {
         $type = 'image';
+
+        return [
+            'type' => $type,
+            'url' => $paragraph,
+            'alt' => $paragraph
+        ];
     }
 
     $describedSentence = [];
