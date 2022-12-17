@@ -4,6 +4,7 @@ use Google\CloudFunctions\FunctionsFramework;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use GuzzleHttp\Psr7\Response;
+use League\HTMLToMarkdown\HtmlConverter;
 
 // Register an HTTP function with the Functions Framework
 FunctionsFramework::http('maverickChunkContent', 'maverickChunkContentHandler');
@@ -14,8 +15,21 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
     if ($request->getMethod() == "POST") {
         $data = $request->getParsedBody();
 
+        $htmlToMarkdown = new HtmlConverter();
+        $markdown = $htmlToMarkdown->convert($data['content']);
+
+        $paragraphs = explode("\n\n", $markdown);
+        $describedParagraph = [];
+        foreach ($paragraphs as $paragraph) {
+            $describedParagraph[] = describeParagraph($paragraph);
+        }
+
+
         $result = [
-            'clean' => strip_tags($data['content']),
+            'paragraphs' => [
+                'count' => count($describedParagraph),
+                'paragraph' => $describedParagraph
+            ],
             'source' => $data['content']
         ];
 
@@ -24,8 +38,6 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
             ['content-type' => 'application/json'],
             json_encode(["data" => $result])
         );
-
-        
     }
 
     // Return an HTTP response
@@ -34,4 +46,12 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
         ['content-type' => 'application/json'],
         json_encode(["message" => "Bad Request"])
     );
+}
+
+function describeParagraph($paragraph) {
+    return [
+        "type" => "text",
+        "length" => strlen($paragraph),
+        "fulltext" => $paragraph
+    ];
 }
