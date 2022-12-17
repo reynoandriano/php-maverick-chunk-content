@@ -28,7 +28,7 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
         $result = [
             'paragraphs' => [
                 'count' => count($describedParagraph),
-                'paragraph' => $describedParagraph
+                'item' => $describedParagraph
             ],
             'source' => $data['content']
         ];
@@ -49,9 +49,44 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
 }
 
 function describeParagraph($paragraph) {
+
+    $type = 'text';
+    
+    if($paragraph[0] == '#') {
+        $type = 'subtitle';
+    }
+
+    if($paragraph[0] == '"') {
+        $type = 'quote';
+    }
+
+    if($paragraph[0] == '!') {
+        $type = 'image';
+    }
+
+    $describedSentence = [];
+    if($type == 'text') {
+        $sentences = explode('. ', $paragraph);        
+        foreach ($sentences as $sentence) {
+            $describedSentence[] = describeSentence($sentence);
+        }
+    }
+
     return [
-        "type" => "text",
-        "length" => strlen($paragraph),
-        "fulltext" => $paragraph
+        'type' => $type,
+        'length' => strlen($paragraph),
+        'text' => $paragraph,
+        'sentences' => [
+            'count' => count($describedSentence),
+            'item' => $describedSentence
+        ]
+    ];
+}
+
+function describeSentence($sentence) {
+    return [
+        'type' => 'text',
+        'length' => strlen($sentence),
+        'text' => $sentence,
     ];
 }
