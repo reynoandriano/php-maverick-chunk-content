@@ -1,0 +1,12 @@
+{
+    "require": {
+        "google/cloud-functions-framework": "^1.1",
+        "guzzlehttp/guzzle": "^7.5"
+    },
+    "scripts": {
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "FUNCTION_TARGET=maverickChunkContent php -S localhost:${PORT:-8080} vendor/bin/router.php"
+        ]
+    }
+}
