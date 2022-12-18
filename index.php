@@ -21,7 +21,7 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
         $paragraphs = explode("\n\n", $markdown);
         $describedParagraph = [];
         foreach ($paragraphs as $paragraph) {
-            $describedParagraph[] = describeParagraph($paragraph);
+            $describedParagraph[] = describeParagraph(trim($paragraph));
         }
 
 
@@ -48,40 +48,54 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
     );
 }
 
-function describeParagraph($paragraph) {
+function describeParagraph($paragraph)
+{
+
+    $markdownToHtml = new \cebe\markdown\Markdown();
 
     $type = 'text';
-    
-    if($paragraph[0] == '#') {
+
+    if ($paragraph[0] == '#') {
         $type = 'subtitle';
     }
 
-    if($paragraph[0] == '"') {
+    if ($paragraph[0] == '"') {
         $type = 'quote';
     }
 
-    if($paragraph[0] == '!') {
+    if ($paragraph[0] == '!') {
         $type = 'image';
 
+        $imgHtml = $markdownToHtml->parse($paragraph);
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($imgHtml);
+        $img = $dom->getElementsByTagName('img')->item(0);
+        
         return [
             'type' => $type,
-            'url' => $paragraph,
-            'alt' => $paragraph
+            'src' => $img->getAttribute('src'),
+            'alt' => $img->getAttribute('alt'),
+            'html' => $imgHtml,
+            'markdown' => $paragraph
         ];
     }
 
     $describedSentence = [];
-    if($type == 'text') {
-        $sentences = explode('. ', $paragraph);        
+    if ($type == 'text') {
+        $sentences = explode('.', $paragraph);
         foreach ($sentences as $sentence) {
-            $describedSentence[] = describeSentence($sentence);
+            if(trim($sentence) != '') {
+                $describedSentence[] = describeSentence(trim($sentence) . '.');
+            }
         }
     }
 
     return [
         'type' => $type,
         'length' => strlen($paragraph),
-        'text' => $paragraph,
+        'html' => $markdownToHtml->parse($paragraph),
+        'markdown' => $paragraph,
         'sentences' => [
             'count' => count($describedSentence),
             'item' => $describedSentence
@@ -89,10 +103,14 @@ function describeParagraph($paragraph) {
     ];
 }
 
-function describeSentence($sentence) {
+function describeSentence($sentence)
+{
+    $markdownToHtml = new \cebe\markdown\Markdown();
+
     return [
         'type' => 'text',
         'length' => strlen($sentence),
-        'text' => $sentence,
+        'html' => $markdownToHtml->parse($sentence),
+        'markdown' => $sentence,
     ];
 }
