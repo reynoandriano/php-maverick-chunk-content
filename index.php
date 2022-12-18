@@ -18,10 +18,12 @@ function maverickChunkContentHandler(ServerRequestInterface $request): ResponseI
         $htmlToMarkdown = new HtmlConverter();
         $markdown = $htmlToMarkdown->convert($data['content']);
 
-        $paragraphs = explode("\n\n", $markdown);
+        $paragraphs = explode("\n", $markdown);
         $describedParagraph = [];
         foreach ($paragraphs as $paragraph) {
-            $describedParagraph[] = describeParagraph(trim($paragraph));
+            if(trim($paragraph) != '') {
+                $describedParagraph[] = describeParagraph(trim($paragraph));
+            }
         }
 
 
